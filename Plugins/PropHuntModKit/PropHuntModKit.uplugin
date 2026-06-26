@@ -16,6 +16,11 @@
 	"Installed": false,
 	"Modules": [
 		{
+			"Name": "PropHuntModKitRuntime",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
 			"Name": "PropHuntModKit",
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit"

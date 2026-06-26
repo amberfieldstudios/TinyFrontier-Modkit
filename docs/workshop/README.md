@@ -124,6 +124,33 @@ To assemble the Mod Kit manually instead:
 
 ---
 
+## 3a. Make props disguiseable (prop tag + CPU access)
+
+A hider can only disguise as a prop whose **static mesh** is set up for it. This is per-mesh
+**asset** data (set once, works everywhere the mesh is placed), so map creators must do it
+for each prop they want hiders to hide as. Re-cook (section 4) after changing either.
+
+1. **Prop tag.** Open the Static Mesh asset -> Details -> **Asset User Data** -> **+** ->
+   **Prop Tag (PropHunt)**; leave **Can Disguise As** ticked. This adds a
+   `UPropTagAssetUserData` (shipped in the `PropHuntModKitRuntime` module, so the same class
+   is present in both the Mod Kit and the game). `UDisguiseComponent::CanDisguiseAsMesh()`
+   reads it at runtime; untagged meshes are not disguiseable (`bRequirePropTag` defaults on).
+2. **Allow CPUAccess.** Tick **Allow CPUAccess** on the same mesh. The disguise copies the
+   prop geometry from the cooked render buffers at runtime, which only survive cooking when
+   this is enabled; without it the disguise falls back to a non-paintable render of the raw
+   mesh. The bundled `Plugins/PropHuntModKit/Scripts/fix_prop_cpu_access.py` enables it in
+   bulk on every tagged prop:
+
+```python
+exec(open(r"<ModKit>\Plugins\PropHuntModKit\Scripts\fix_prop_cpu_access.py").read())
+```
+
+> The tag class lives in the Mod Kit's runtime plugin module specifically so a prop tagged
+> by a creator carries the exact `UClass` the shipping game checks. A `CoreRedirect` in
+> `DefaultEngine.ini` remaps the old `/Script/prophunt.PropTagAssetUserData` path to it.
+
+---
+
 ## 4. Cook a map as DLC + the `meta.json` schema
 
 A creator cooks **only their plugin/map** as DLC against the release version. If maps are

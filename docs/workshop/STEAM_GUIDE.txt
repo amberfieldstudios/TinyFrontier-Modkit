@@ -40,6 +40,15 @@ This generates a level at [code]/Game/WorkshopMaps/<MapName>/<MapName>[/code] pr
 [*][b]Kill / boundary volumes[/b] around the edges so players can't escape the map.
 [/list]
 [*]Build your geometry, lighting, and props. Only use assets you are [b]allowed to redistribute[/b] - don't ship paid marketplace packs you aren't licensed to share.
+[*][b]Make your props disguiseable (important!)[/b] - a hider can only turn into a prop if that prop's [b]static mesh[/b] is set up for it. For [u]each[/u] mesh you want hiders to hide as:
+[list]
+[*][b]Tag it as a prop.[/b] Open the Static Mesh asset, find [b]Asset User Data[/b] in the Details panel, click [b]+[/b] and add [b]Prop Tag (PropHunt)[/b]. Leave [b]Can Disguise As[/b] ticked. (Untagged meshes are ignored by the disguise system, so players cannot hide as them.)
+[*][b]Enable Allow CPUAccess.[/b] On the same Static Mesh, tick [b]Allow CPUAccess[/b] (Details -> General Settings / LOD section). Without it, the disguise still appears but the paintable surface breaks in the packaged build.
+[*][b]Bulk shortcut:[/b] after tagging your props, run the bundled helper to enable Allow CPUAccess on every tagged prop at once, then re-cook:
+[code]exec(open(r"C:\PropHuntModKit\Plugins\PropHuntModKit\Scripts\fix_prop_cpu_access.py").read())[/code]
+(add [code]--dry-run[/code] in the args to preview without saving.)
+[/list]
+[i]Both settings live on the mesh ASSET, so a prop is set up once and works everywhere it's placed. You must re-cook (Step 3) after changing them.[/i]
 [*][b]Save your map in the exact folder the game scans:[/b]
 [code]/Game/WorkshopMaps/<MapName>/<MapName>[/code]
 For example, a map called [b]MyAwesomeMap[/b] is saved at:
