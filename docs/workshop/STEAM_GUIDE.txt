@@ -17,14 +17,14 @@
 
 [h1]Step 1 - Get the Mod Kit[/h1]
 [olist]
-[*][b]Download the latest Mod Kit[/b] ([code]PropHunt-ModKit-1.0.zip[/code]) from the official release page:
+[*][b]Download the latest Mod Kit[/b] (the [code]PropHunt-ModKit-*.zip[/code] asset) from the official release page - always grab the newest release:
 [code]https://github.com/AmberfieldStudios/TinyFrontier-Modkit/releases/latest[/code]
 [*]Unzip it to a path with [b]no spaces[/b], e.g. [code]C:\PropHuntModKit[/code].
 [*]Install [b]Unreal Engine 5.7.4[/b] via the Epic Games Launcher.
 [*]Open [code]prophunt.uproject[/code] from the Mod Kit folder. Let the editor finish compiling/shader-building the first time (this can take a while).
 [/olist]
 
-[i]The Mod Kit already includes the [b]release version[/b] (under [code]Releases\1.0\Windows\[/code]) that your map gets cooked against. Don't delete it - it's how your map stays compatible with the shipped game. The kit version (currently [b]1.0[/b]) must match the [b]-basedonreleaseversion[/b] you pass when cooking in Step 3.[/i]
+[i]The Mod Kit bundles the [b]release version[/b] (under [code]Releases\1.0\Windows\[/code]) that your map gets cooked against. Don't delete it - it's how your map stays compatible with the shipped game. Always cook with [b]-basedonreleaseversion=1.0[/b] (Step 3); this release version is fixed by the kit and is separate from the kit's own download version.[/i]
 
 [hr][/hr]
 
