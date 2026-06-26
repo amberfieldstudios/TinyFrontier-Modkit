@@ -1,0 +1,20 @@
+﻿# Unreal Engine build artifacts
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+DDC/
+*.pdb
+
+# Cooked / packaged content (the kit zip is distributed via GitHub Releases, not git)
+*.pak
+*.ucas
+*.utoc
+
+# IDE / OS
+.vs/
+.idea/
+.vscode/
+*.sln
+.DS_Store
+Thumbs.db

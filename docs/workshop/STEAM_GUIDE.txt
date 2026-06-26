@@ -1,0 +1,153 @@
+[h1]PropHunt - How to Create & Publish a Custom Map[/h1]
+
+[i]This guide walks you through building a custom PropHunt map and publishing it to the Steam Workshop using the official PropHunt Mod Kit. No coding required - if you can open Unreal Engine and place actors in a level, you can ship a map.[/i]
+
+[hr][/hr]
+
+[h1]What you'll need[/h1]
+[list]
+[*][b]The PropHunt Mod Kit[/b] - the trimmed Unreal project we hand out to creators (includes the Publish tool and the map template).
+[*][b]Unreal Engine 5.7.4[/b] - the exact engine version the game is built on. Other versions will not cook compatible maps.
+[*][b]The Steam client[/b], running and logged in (uploading goes through your Steam account).
+[*][b]~30-60 GB free disk space[/b] for the engine + project + cook output.
+[*]A Windows (Win64) PC. Workshop uploading and cooking are Win64-only.
+[/list]
+
+[hr][/hr]
+
+[h1]Step 1 - Get the Mod Kit[/h1]
+[olist]
+[*][b]Download the latest Mod Kit[/b] ([code]PropHunt-ModKit-1.0.zip[/code]) from the official release page:
+[code]https://github.com/AmberfieldStudios/TinyFrontier-Modkit/releases/latest[/code]
+[*]Unzip it to a path with [b]no spaces[/b], e.g. [code]C:\PropHuntModKit[/code].
+[*]Install [b]Unreal Engine 5.7.4[/b] via the Epic Games Launcher.
+[*]Open [code]prophunt.uproject[/code] from the Mod Kit folder. Let the editor finish compiling/shader-building the first time (this can take a while).
+[/olist]
+
+[i]The Mod Kit already includes the [b]release version[/b] (under [code]Releases\1.0\Windows\[/code]) that your map gets cooked against. Don't delete it - it's how your map stays compatible with the shipped game. The kit version (currently [b]1.0[/b]) must match the [b]-basedonreleaseversion[/b] you pass when cooking in Step 3.[/i]
+
+[hr][/hr]
+
+[h1]Step 2 - Build your map[/h1]
+[olist]
+[*]Create your starting map: set [b]MAP_NAME[/b] at the top of [code]Plugins\PropHuntModKit\Scripts\create_map_template.py[/code], then run it in the editor's Python console (Output Log -> Cmd: Python):
+[code]exec(open(r"C:\PropHuntModKit\Plugins\PropHuntModKit\Scripts\create_map_template.py").read())[/code]
+This generates a level at [code]/Game/WorkshopMaps/<MapName>/<MapName>[/code] pre-populated with the actors the game mode needs (floor, player starts, nav-mesh bounds, a boundary volume).
+[*]Make sure your level keeps these required actors:
+[list]
+[*][b]Player Starts[/b] - enough spawn points for a full lobby.
+[*][b]Nav Mesh[/b] bounds volume covering the playable area (so hunters/AI can path).
+[*][b]Kill / boundary volumes[/b] around the edges so players can't escape the map.
+[/list]
+[*]Build your geometry, lighting, and props. Only use assets you are [b]allowed to redistribute[/b] - don't ship paid marketplace packs you aren't licensed to share.
+[*][b]Save your map in the exact folder the game scans:[/b]
+[code]/Game/WorkshopMaps/<MapName>/<MapName>[/code]
+For example, a map called [b]MyAwesomeMap[/b] is saved at:
+[code]/Game/WorkshopMaps/MyAwesomeMap/MyAwesomeMap[/code]
+[/olist]
+
+[i]Tip: keep [b]<MapName>[/b] short, alphanumeric, and consistent - you'll reuse it as the DLC name and in your meta file.[/i]
+
+[hr][/hr]
+
+[h1]Step 3 - Cook your map as DLC[/h1]
+[i]Your map is cooked as "DLC" against the base game's release version, so only your new content is packaged - not the whole game.[/i]
+
+Open a command prompt and run (adjust the paths for your install):
+
+[code]"F:\Unreal\UE_5.7\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun ^
+  -project="C:\PropHuntModKit\prophunt.uproject" ^
+  -noP4 -platform=Win64 -clientconfig=Shipping ^
+  -cook -stage -pak ^
+  -basedonreleaseversion=1.0 ^
+  -DLCName=MyAwesomeMap -DLCIncludeEngineContent[/code]
+
+[list]
+[*]Replace [b]MyAwesomeMap[/b] with your map name.
+[*][b]-basedonreleaseversion=1.0[/b] must match the release version shipped in your Mod Kit.
+[/list]
+
+When it finishes, find the cooked [b].pak[/b] file in the DLC staged output folder. That [code].pak[/code] is what goes into your Workshop item.
+
+[hr][/hr]
+
+[h1]Step 4 - Add a meta.json[/h1]
+Create a folder for your Workshop item and put your cooked [code].pak[/code] inside it. Next to it, add a small text file named [b]meta.json[/b] describing your map:
+
+[code]{
+  "displayName": "My Awesome Map",
+  "mapPackagePath": "/Game/WorkshopMaps/MyAwesomeMap/MyAwesomeMap",
+  "pakFile": "MyAwesomeMap.pak",
+  "previewImage": "preview.png"
+}[/code]
+
+[table]
+[tr][th]Field[/th][th]Required[/th][th]Meaning[/th][/tr]
+[tr][td]displayName[/td][td]Recommended[/td][td]Name shown in the in-game lobby map picker. Falls back to the filename.[/td][/tr]
+[tr][td]mapPackagePath[/td][td]Yes[/td][td]The level path the game loads. Must match where you saved/cooked the map.[/td][/tr]
+[tr][td]pakFile[/td][td]Optional[/td][td]The .pak filename. If omitted, the first .pak in the folder is used.[/td][/tr]
+[tr][td]previewImage[/td][td]Optional[/td][td]An image file in the folder, also used as the Workshop preview.[/td][/tr]
+[/table]
+
+Your final item folder should contain three things:
+[code]MyAwesomeMap.pak
+meta.json
+preview.png[/code]
+
+[i]Make a [b]preview.png[/b] (a nice screenshot of your map) - it's used both in-game and as your Workshop thumbnail.[/i]
+
+[hr][/hr]
+
+[h1]Step 5 - Upload to the Workshop[/h1]
+[i]The Mod Kit ships with a ready-made Publish script you run from the editor's Python console. No Blueprint or C++ needed - you just edit a few settings and paste one line.[/i]
+[olist]
+[*]Make sure the [b]Steam client is running and logged in[/b], and that [b]steam_appid.txt[/b] (containing [code]4133940[/code]) sits next to your Unreal editor executable.
+[*]Open the script [code]Plugins\PropHuntModKit\Scripts\publish_test_item.py[/code] in any text editor and set the settings block at the top:
+[list]
+[*][b]CONTENT_FOLDER[/b] - the folder containing your .pak + meta.json + preview.
+[*][b]PREVIEW_IMAGE[/b] - path to your preview.png.
+[*][b]TITLE[/b] / [b]DESCRIPTION[/b] - what shows on the Workshop page.
+[*]Leave [b]PUBLISHED_FILE_ID[/b] empty to create a new item (set it later to update an existing one).
+[/list]
+[*]In the editor, open [b]Window -> Output Log[/b], switch the command dropdown to [b]Python[/b], and paste:
+[code]exec(open(r"C:\PropHuntModKit\Plugins\PropHuntModKit\Scripts\publish_test_item.py").read())[/code]
+(adjust the path to where you unzipped the kit). The editor will briefly freeze while it uploads - that's normal. The log prints the new item's [b]PublishedFileId[/b] and page URL.
+[*]If prompted, open the item's Steam page and [b]accept the Steam Workshop Legal Agreement[/b] (your item won't appear publicly until you do).
+[*]On the new item's page, set [b]Visibility[/b] to [b]Hidden[/b] or [b]Friends Only[/b] while you test.
+[/olist]
+
+[i]To update a map later, set [b]PUBLISHED_FILE_ID[/b] to your item's id and run the script again with a change note.[/i]
+
+[hr][/hr]
+
+[h1]Step 6 - Test your map[/h1]
+[i]Test from a real packaged game launched through Steam - not from the editor.[/i]
+[olist]
+[*][b]Subscribe[/b] to your own (hidden) Workshop item in the Steam client and let it install.
+[*]Launch PropHunt. Open the lobby map picker - your map should appear [b]after[/b] the built-in maps.
+[*][b]Solo:[/b] pick your map and start a match. It should travel and load correctly.
+[*][b]With a friend who hasn't subscribed:[/b]
+[list]
+[*]You (host) pick the map and press Create Match.
+[*]Your friend should see a [b]download overlay[/b] with a progress bar, auto-download, then join you.
+[*]Confirm the host waits for the client before traveling.
+[/list]
+[/olist]
+
+[hr][/hr]
+
+[h1]Troubleshooting[/h1]
+[table]
+[tr][th]Symptom[/th][th]Likely cause / fix[/th][/tr]
+[tr][td]Map never shows in the picker[/td][td]You're testing in the editor instead of a packaged Steam build, or meta.json is missing/invalid.[/td][/tr]
+[tr][td]Map shows but travel fails for clients[/td][td]Cooked against the wrong release version - re-cook with the correct -basedonreleaseversion.[/td][/tr]
+[tr][td]"failed to mount" error[/td][td]The pakFile name is wrong, or the .pak is corrupt. Double-check the filename in meta.json.[/td][/tr]
+[tr][td]Upload fails / tool says Steam unavailable[/td][td]Steam client isn't running/logged in, or steam_appid.txt is missing next to the editor.[/td][/tr]
+[/table]
+
+[hr][/hr]
+
+[h1]A note on content[/h1]
+Only publish maps built from assets you have the right to share. Workshop maps are third-party content played at users' own risk. Keep it appropriate and follow the Steam Workshop rules.
+
+[i]Happy hunting - we can't wait to play your map![/i]
