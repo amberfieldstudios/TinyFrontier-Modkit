@@ -118,9 +118,19 @@ To assemble the Mod Kit manually instead:
        build with.
 2. Provide a **map template** (a `.umap` with the spawn points / volumes the game mode
    needs). Document required actors (player starts, nav mesh, kill/boundary volumes).
-3. Tell creators to save their map under the Workshop content root the game scans:
-   **`/Game/WorkshopMaps/<MapName>/<MapName>`** (configurable via
-   `UWorkshopSubsystem::WorkshopContentRoot`, default `/Game/WorkshopMaps`).
+3. Tell creators to author their map **inside a content plugin named after the map**, NOT
+   under `/Game`. Unreal's DLC cook (section 4) only packages content that lives inside the
+   named plugin, so a `/Game/...` map cooks to an **empty pak**. The flow is:
+   1. In the editor: **Edit -> Plugins -> + Add -> "Content Only"**, name it e.g.
+      `MyAwesomeMap`. Restart if prompted so the plugin mounts at `/MyAwesomeMap/`.
+   2. Author (or move) the map to **`/<PluginName>/<MapName>`**, e.g.
+      `/MyAwesomeMap/MyAwesomeMap`. `Plugins/PropHuntModKit/Scripts/create_map_template.py`
+      creates the template level inside the plugin for you (it refuses if the plugin
+      isn't created yet).
+   3. The shipping game resolves this plugin path at runtime: when it mounts a subscribed
+      Workshop pak, `UWorkshopSubsystem::MountWorkshopPak` registers the plugin's content
+      mount point (`/<PluginName>/` -> `Plugins/<PluginName>/Content`) so the level loads by
+      its `meta.json` path. This is why the map does **not** need to live under `/Game`.
 
 ---
 
@@ -153,8 +163,10 @@ exec(open(r"<ModKit>\Plugins\PropHuntModKit\Scripts\fix_prop_cpu_access.py").rea
 
 ## 4. Cook a map as DLC + the `meta.json` schema
 
-A creator cooks **only their plugin/map** as DLC against the release version. If maps are
-authored inside a plugin named e.g. `MyAwesomeMap`:
+A creator cooks **only their plugin/map** as DLC against the release version. The map must
+live inside a content plugin (section 3); the `-DLCName` you pass **must be that plugin's
+name** — UE resolves it to `Plugins/<DLCName>/<DLCName>.uplugin` and packages only that
+plugin's content. For a plugin named `MyAwesomeMap`:
 
 ```bat
 "F:\Unreal\UE_5.7\Engine\Build\BatchFiles\RunUAT.bat" BuildCookRun ^
@@ -184,7 +196,7 @@ item. Alongside it, the creator adds a **`meta.json`** describing the map.
 ```json
 {
   "displayName": "My Awesome Map",
-  "mapPackagePath": "/Game/WorkshopMaps/MyAwesomeMap/MyAwesomeMap",
+  "mapPackagePath": "/MyAwesomeMap/MyAwesomeMap",
   "pakFile": "MyAwesomeMap.pak",
   "previewImage": "preview.png"
 }
@@ -193,7 +205,7 @@ item. Alongside it, the creator adds a **`meta.json`** describing the map.
 | Field | Required | Meaning |
 |-------|----------|---------|
 | `displayName` | recommended | Name shown in the lobby map picker. Falls back to the map filename. |
-| `mapPackagePath` | **yes** | Level package path the game travels to. Must match where the map was saved/cooked. |
+| `mapPackagePath` | **yes** | Level package path the game travels to. Must be the **plugin** path where the map was authored/cooked, e.g. `/MyAwesomeMap/MyAwesomeMap` (or `/MyAwesomeMap/<Sub>/MyAwesomeMap` if the map sits in a subfolder). NOT a `/Game/...` path. |
 | `pakFile` | optional | The `.pak` filename in the item folder. If omitted, the first `*.pak` found is mounted. |
 | `previewImage` | optional | Image file in the item folder (also use it as the Workshop preview). |
 

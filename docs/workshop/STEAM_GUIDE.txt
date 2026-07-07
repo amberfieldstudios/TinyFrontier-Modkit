@@ -30,9 +30,10 @@
 
 [h1]Step 2 - Build your map[/h1]
 [olist]
-[*]Create your starting map: set [b]MAP_NAME[/b] at the top of [code]Plugins\PropHuntModKit\Scripts\create_map_template.py[/code], then run it in the editor's Python console (Output Log -> Cmd: Python):
+[*][b]Create a content plugin for your map first (required).[/b] Your map must live in a plugin, not under /Game - the cook in Step 3 only packages plugin content, so a /Game map produces an empty upload. In the editor: [b]Edit -> Plugins -> + Add -> "Content Only"[/b], and name it exactly your map name (e.g. [b]MyAwesomeMap[/b]). Restart if prompted so it mounts.
+[*]Create your starting map: set [b]MAP_NAME[/b] at the top of [code]Plugins\PropHuntModKit\Scripts\create_map_template.py[/code] to match the plugin name, then run it in the editor's Python console (Output Log -> Cmd: Python):
 [code]exec(open(r"C:\PropHuntModKit\Plugins\PropHuntModKit\Scripts\create_map_template.py").read())[/code]
-This generates a level at [code]/Game/WorkshopMaps/<MapName>/<MapName>[/code] pre-populated with the actors the game mode needs (floor, player starts, nav-mesh bounds, a boundary volume).
+This generates a level at [code]/<MapName>/<MapName>[/code] (inside your plugin) pre-populated with the actors the game mode needs (floor, player starts, nav-mesh bounds, a boundary volume). (The game registers your plugin's mount at runtime when it loads the pak, so the map still loads for players who don't have your plugin.)
 [*]Make sure your level keeps these required actors:
 [list]
 [*][b]Player Starts[/b] - enough spawn points for a full lobby.
@@ -49,10 +50,11 @@ This generates a level at [code]/Game/WorkshopMaps/<MapName>/<MapName>[/code] pr
 (add [code]--dry-run[/code] in the args to preview without saving.)
 [/list]
 [i]Both settings live on the mesh ASSET, so a prop is set up once and works everywhere it's placed. You must re-cook (Step 3) after changing them.[/i]
-[*][b]Save your map in the exact folder the game scans:[/b]
-[code]/Game/WorkshopMaps/<MapName>/<MapName>[/code]
+[*][b]Save your map inside your plugin[/b] (not under /Game):
+[code]/<MapName>/<MapName>[/code]
 For example, a map called [b]MyAwesomeMap[/b] is saved at:
-[code]/Game/WorkshopMaps/MyAwesomeMap/MyAwesomeMap[/code]
+[code]/MyAwesomeMap/MyAwesomeMap[/code]
+This exact path is what you put in [b]mapPackagePath[/b] in your meta.json (Step 4).
 [/olist]
 
 [i]Tip: keep [b]<MapName>[/b] short, alphanumeric, and consistent - you'll reuse it as the DLC name and in your meta file.[/i]
@@ -87,7 +89,7 @@ Create a folder for your Workshop item and put your cooked [code].pak[/code] ins
 
 [code]{
   "displayName": "My Awesome Map",
-  "mapPackagePath": "/Game/WorkshopMaps/MyAwesomeMap/MyAwesomeMap",
+  "mapPackagePath": "/MyAwesomeMap/MyAwesomeMap",
   "pakFile": "MyAwesomeMap.pak",
   "previewImage": "preview.png"
 }[/code]
@@ -95,7 +97,7 @@ Create a folder for your Workshop item and put your cooked [code].pak[/code] ins
 [table]
 [tr][th]Field[/th][th]Required[/th][th]Meaning[/th][/tr]
 [tr][td]displayName[/td][td]Recommended[/td][td]Name shown in the in-game lobby map picker. Falls back to the filename.[/td][/tr]
-[tr][td]mapPackagePath[/td][td]Yes[/td][td]The level path the game loads. Must match where you saved/cooked the map.[/td][/tr]
+[tr][td]mapPackagePath[/td][td]Yes[/td][td]The level path the game loads - your plugin path (e.g. /MyAwesomeMap/MyAwesomeMap), NOT a /Game path. Must match where you saved/cooked the map.[/td][/tr]
 [tr][td]pakFile[/td][td]Optional[/td][td]The .pak filename. If omitted, the first .pak in the folder is used.[/td][/tr]
 [tr][td]previewImage[/td][td]Optional[/td][td]An image file in the folder, also used as the Workshop preview.[/td][/tr]
 [/table]

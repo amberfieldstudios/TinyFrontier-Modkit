@@ -1,7 +1,16 @@
-# Creates a starting PropHunt map template with the actors the game mode needs, saved to
-#   /Game/WorkshopMaps/<MAP_NAME>/<MAP_NAME>
+# Creates a starting PropHunt map template with the actors the game mode needs.
 #
-# Run it from the editor Python console (Window -> Output Log -> Cmd: "Python"):
+# Workshop maps ship as DLC, and Unreal only packages DLC content that lives INSIDE a
+# plugin, so your map must live in a content plugin (mounted at "/<PluginName>/..."),
+# NOT under "/Game". The shipping game registers that plugin mount at runtime when it
+# mounts your Workshop pak, so the map loads by its "/<PluginName>/<MapName>" path.
+#
+# ONE-TIME SETUP before running this script:
+#   1. Edit -> Plugins -> "+ Add" (New Plugin) -> choose "Content Only".
+#   2. Name it exactly the same as MAP_NAME below (e.g. "MyAwesomeMap"). Create + restart
+#      if prompted so the plugin mounts.
+#
+# Then run this from the editor Python console (Window -> Output Log -> Cmd: "Python"):
 #   exec(open(r"<ModKit>\Plugins\PropHuntModKit\Scripts\create_map_template.py").read())
 #
 # Then save, build your geometry on top, and continue with the cook + publish steps in the
@@ -10,14 +19,17 @@
 import unreal
 
 # ---------------------------------------------------------------------------
-MAP_NAME       = "MyAwesomeMap"   # your map's name (also used as the DLC name + meta path)
+MAP_NAME       = "MyAwesomeMap"   # your map's name. Must match the content plugin you made
+                                  # above; also used as the DLC name (-DLCName) + meta path.
 PLAYER_STARTS  = 12               # number of spawn points to place in a ring
 RING_RADIUS_CM = 1200.0           # spacing of the spawn ring (cm)
 FLOOR_SIZE     = 40.0             # floor scale (each engine cube is 100cm; 40 -> 40m)
 NAV_SCALE      = 50.0             # nav-mesh bounds volume scale (resize to cover your map)
 # ---------------------------------------------------------------------------
 
-PACKAGE_PATH = "/Game/WorkshopMaps/%s/%s" % (MAP_NAME, MAP_NAME)
+# The map lives inside the "<MAP_NAME>" content plugin: mount "/<MAP_NAME>/".
+PLUGIN_ROOT  = "/%s" % MAP_NAME
+PACKAGE_PATH = "%s/%s" % (PLUGIN_ROOT, MAP_NAME)
 
 
 def _level_subsystem():
@@ -33,12 +45,25 @@ def _spawn(cls, location, rotation=None):
     return _actor_subsystem().spawn_actor_from_class(cls, unreal.Vector(*location), rot)
 
 
+def _plugin_is_mounted():
+    # The plugin's content mount only exists once the Content-Only plugin has been created.
+    return unreal.EditorAssetLibrary.does_directory_exist(PLUGIN_ROOT)
+
+
 def main():
     import math
 
+    if not _plugin_is_mounted():
+        unreal.log_error(
+            "[Template] Content plugin '%s' is not mounted. Create it first: "
+            "Edit -> Plugins -> + Add -> 'Content Only', name it exactly '%s', then re-run "
+            "this script. (Workshop maps must live in a plugin, not under /Game.)"
+            % (MAP_NAME, MAP_NAME))
+        return
+
     les = _level_subsystem()
 
-    # New empty level at the Workshop content path the game scans.
+    # New empty level inside the map's content plugin (the mount the game resolves at runtime).
     les.new_level(PACKAGE_PATH)
     unreal.log("[Template] Created new level: %s" % PACKAGE_PATH)
 
@@ -78,6 +103,7 @@ def main():
     les.save_current_level()
     unreal.log("[Template] Saved. Build your map on top, then cook + publish.")
     unreal.log("[Template] meta.json mapPackagePath -> %s" % PACKAGE_PATH)
+    unreal.log("[Template] cook with: -DLCName=%s" % MAP_NAME)
 
 
 main()
