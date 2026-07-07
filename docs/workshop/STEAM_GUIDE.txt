@@ -69,11 +69,13 @@ Open a command prompt and run (adjust the paths for your install):
   -noP4 -platform=Win64 -clientconfig=Shipping ^
   -cook -stage -pak ^
   -basedonreleaseversion=1.0 ^
-  -DLCName=MyAwesomeMap -DLCIncludeEngineContent[/code]
+  -DLCName=MyAwesomeMap -DLCIncludeEngineContent ^
+  -unrealexe="F:\Unreal\UE_5.7\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"[/code]
 
 [list]
 [*]Replace [b]MyAwesomeMap[/b] with your map name.
 [*][b]-basedonreleaseversion=1.0[/b] must match the release version shipped in your Mod Kit.
+[*][b]-unrealexe=[/b] must point at [b]your[/b] UE 5.7.4 install (adjust the path). The Mod Kit ships no editor build of its own, so cooking must borrow your installed engine's editor - without this flag the cook fails with [i]"Could not find ... prophuntEditor.target"[/i].
 [/list]
 
 When it finishes, find the cooked [b].pak[/b] file in the DLC staged output folder. That [code].pak[/code] is what goes into your Workshop item.

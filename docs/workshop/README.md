@@ -162,8 +162,19 @@ authored inside a plugin named e.g. `MyAwesomeMap`:
   -noP4 -platform=Win64 -clientconfig=Shipping ^
   -cook -stage -pak ^
   -basedonreleaseversion=1.0 ^
-  -DLCName=MyAwesomeMap -DLCIncludeEngineContent
+  -DLCName=MyAwesomeMap -DLCIncludeEngineContent ^
+  -unrealexe="F:\Unreal\UE_5.7\Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
 ```
+
+> **Why `-unrealexe`?** The Mod Kit is a *content-only* project (no `Source/`, no compiled
+> `Binaries/`), but the enabled engine plugins (GeometryScripting, etc.) make UAT treat it as
+> code-based and generate a temporary `prophuntEditor` target. UAT then looks for a build
+> receipt at `<ModKitProject>\Binaries\Win64\prophuntEditor.target` — which the kit does not
+> ship — and cooking fails with `DirectoryNotFoundException: … prophuntEditor.target`.
+> Passing `-unrealexe=` points cooking at your **installed engine** editor instead (which
+> already has those plugins and loads the bundled `PropHuntModKit` plugin), skipping the
+> receipt lookup. **Adjust the path to wherever you installed UE 5.7.4** — it is not always
+> `F:\Unreal\UE_5.7`.
 
 The resulting `.pak` (under the DLC staged folder) is the file that goes into the Workshop
 item. Alongside it, the creator adds a **`meta.json`** describing the map.
